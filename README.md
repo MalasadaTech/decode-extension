@@ -73,6 +73,11 @@ The extension uses Firefox’s WebExtension APIs to provide decoding functionali
   - `atob()` for Base64-encoded strings.
 - **Output**: The decoded result (or an error message) is displayed via an alert box.
 
+The following is from: https://urlscan.io/responses/ef5817fd51c75f45f9bbd5c35df8bc9c02cf158e614f3767ff8ee86c57be8cb1/
+
+![Screenshot 1](screenshot-01.png)
+![Screenshot 2](screenshot-02.png)
+
 ## Permissions
 
 The extension requires these permissions:
