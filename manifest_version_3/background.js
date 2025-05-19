@@ -25,6 +25,12 @@ chrome.runtime.onInstalled.addListener(function() {
     title: "Decode as Unicode Escape",
     contexts: ["selection"]
   });
+  
+  chrome.contextMenus.create({
+    id: "decodeHtmlEntity",
+    title: "Decode as HTML Entity",
+    contexts: ["selection"]
+  });
 
   console.log("Decode Extension initialized successfully");
 });
@@ -80,12 +86,25 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
         console.log("Script injection succeeded:", injectionResults);
         showNotification(injectionResults[0].result);
       }
-    });
-  } else if (info.menuItemId === "decodeUnicode") {
+    });  } else if (info.menuItemId === "decodeUnicode") {
     chrome.scripting.executeScript({
       target: { tabId: tab.id },
       func: decodeSelectedText,
       args: ["unicode"]
+    }, (injectionResults) => {
+      if (chrome.runtime.lastError) {
+        console.error("Script injection failed:", chrome.runtime.lastError);
+        showNotification("Error decoding: " + chrome.runtime.lastError.message);
+      } else if (injectionResults && injectionResults[0]) {
+        console.log("Script injection succeeded:", injectionResults);
+        showNotification(injectionResults[0].result);
+      }
+    });
+  } else if (info.menuItemId === "decodeHtmlEntity") {
+    chrome.scripting.executeScript({
+      target: { tabId: tab.id },
+      func: decodeSelectedText,
+      args: ["htmlEntity"]
     }, (injectionResults) => {
       if (chrome.runtime.lastError) {
         console.error("Script injection failed:", chrome.runtime.lastError);
@@ -336,9 +355,19 @@ function decodeSelectedText(type) {
         
         return result;
       }
-      
-      decodedText = decodeUnicodeEscapes(selectedText);
+        decodedText = decodeUnicodeEscapes(selectedText);
       console.log("Decoded unicode:", decodedText);
+    } else if (type === "htmlEntity") {
+      console.log("Decoding type: HTML entity");
+      console.log("Selected text:", selectedText);
+      
+      // Create a temporary DOM element to decode HTML entities
+      // This handles both numeric (&#65;) and named entities (&amp;)
+      const tempElement = document.createElement('textarea');
+      tempElement.innerHTML = selectedText;
+      decodedText = tempElement.value;
+      
+      console.log("Decoded HTML entity:", decodedText);
     }
     
     // Ensure we have a valid string before continuing
@@ -368,14 +397,15 @@ function decodeSelectedText(type) {
       decodedText = selectedText || "No text could be decoded";
     }  } catch (e) {
     console.error("Error in decodeSelectedText:", e);
-    
-    // Provide more informative error messages based on the error type
+      // Provide more informative error messages based on the error type
     if (type === "base64" && e.message.includes("base64")) {
       decodedText = "Error decoding base64: The input doesn't appear to be valid base64-encoded data. If this is hex data, try using 'Decode as Hex' instead.";
     } else if (type === "url" && e.message.includes("URI")) {
       decodedText = "Error decoding URL: The input contains invalid URL-encoded characters.";
     } else if (type === "hex" && selectedText.length % 2 !== 0) {
       decodedText = "Error decoding hex: Input length should be even (each byte is 2 hex digits).";
+    } else if (type === "htmlEntity") {
+      decodedText = "Error decoding HTML entity: " + e.message + ". Make sure the input contains valid HTML entities (e.g., &amp;, &#65;, &#x41;).";
     } else {
       decodedText = "Error decoding: " + e.message;
     }
