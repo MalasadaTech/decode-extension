@@ -18,6 +18,12 @@ chrome.runtime.onInstalled.addListener(function() {
     title: "Decode as Hex",
     contexts: ["selection"]
   });
+  
+  chrome.contextMenus.create({
+    id: "decodeUnicode",
+    title: "Decode as Unicode Escape",
+    contexts: ["selection"]
+  });
 
   console.log("Decode Extension initialized successfully");
 });
@@ -60,12 +66,25 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
         console.log("Script injection succeeded:", injectionResults);
         showNotification(injectionResults[0].result);
       }
-    });
-  } else if (info.menuItemId === "decodeHex") {
+    });  } else if (info.menuItemId === "decodeHex") {
     chrome.scripting.executeScript({
       target: { tabId: tab.id },
       func: decodeSelectedText,
       args: ["hex"]
+    }, (injectionResults) => {
+      if (chrome.runtime.lastError) {
+        console.error("Script injection failed:", chrome.runtime.lastError);
+        showNotification("Error decoding: " + chrome.runtime.lastError.message);
+      } else if (injectionResults && injectionResults[0]) {
+        console.log("Script injection succeeded:", injectionResults);
+        showNotification(injectionResults[0].result);
+      }
+    });
+  } else if (info.menuItemId === "decodeUnicode") {
+    chrome.scripting.executeScript({
+      target: { tabId: tab.id },
+      func: decodeSelectedText,
+      args: ["unicode"]
     }, (injectionResults) => {
       if (chrome.runtime.lastError) {
         console.error("Script injection failed:", chrome.runtime.lastError);
@@ -98,6 +117,28 @@ function decodeSelectedText(type) {
         decodedText += String.fromCharCode(parseInt(hex.substr(i, 2), 16));
       }
       console.log("Decoded hex:", decodedText);
+    } else if (type === "unicode") {
+      console.log("Decoding type: unicode");
+      console.log("Selected text:", selectedText);
+      // Handle various Unicode escape formats
+      decodedText = selectedText
+        // Handle \uXXXX format
+        .replace(/\\u([0-9a-fA-F]{4})/g, (match, hex) => 
+          String.fromCodePoint(parseInt(hex, 16))
+        )
+        // Handle \u{XXXXX} format (ES6)
+        .replace(/\\u\{([0-9a-fA-F]+)\}/g, (match, hex) => 
+          String.fromCodePoint(parseInt(hex, 16))
+        )
+        // Handle &#XXXXX; HTML entity format (decimal)
+        .replace(/&#(\d+);/g, (match, dec) => 
+          String.fromCodePoint(parseInt(dec, 10))
+        )
+        // Handle &#xXXXX; HTML entity format (hex)
+        .replace(/&#x([0-9a-fA-F]+);/g, (match, hex) => 
+          String.fromCodePoint(parseInt(hex, 16))
+        );
+      console.log("Decoded unicode:", decodedText);
     }
   } catch (e) {
     throw new Error(e.message); // Throw error to be caught by the caller

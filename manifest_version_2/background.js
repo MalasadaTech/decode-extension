@@ -17,6 +17,12 @@ browser.contextMenus.create({
   contexts: ["selection"]
 });
 
+browser.contextMenus.create({
+  id: "decodeUnicode",
+  title: "Decode as Unicode Escape",
+  contexts: ["selection"]
+});
+
 // Listen for context menu clicks
 browser.contextMenus.onClicked.addListener((info, tab) => {
   if (info.menuItemId === "decodeUrl") {
@@ -49,6 +55,16 @@ browser.contextMenus.onClicked.addListener((info, tab) => {
     }).catch((error) => {
       showNotification("Error decoding: " + error.message);
     });
+  } else if (info.menuItemId === "decodeUnicode") {
+    browser.scripting.executeScript({
+      target: { tabId: tab.id },
+      func: decodeSelectedText,
+      args: ["unicode"]
+    }).then((results) => {
+      showNotification(results[0].result);
+    }).catch((error) => {
+      showNotification("Error decoding: " + error.message);
+    });
   }
 });
 
@@ -72,6 +88,28 @@ function decodeSelectedText(type) {
         decodedText += String.fromCharCode(parseInt(hex.substr(i, 2), 16));
       }
       console.log("Decoded hex:", decodedText);
+    } else if (type === "unicode") {
+      console.log("Decoding type: unicode");
+      console.log("Selected text:", selectedText);
+      // Handle various Unicode escape formats
+      decodedText = selectedText
+        // Handle \uXXXX format
+        .replace(/\\u([0-9a-fA-F]{4})/g, (match, hex) => 
+          String.fromCodePoint(parseInt(hex, 16))
+        )
+        // Handle \u{XXXXX} format (ES6)
+        .replace(/\\u\{([0-9a-fA-F]+)\}/g, (match, hex) => 
+          String.fromCodePoint(parseInt(hex, 16))
+        )
+        // Handle &#XXXXX; HTML entity format (decimal)
+        .replace(/&#(\d+);/g, (match, dec) => 
+          String.fromCodePoint(parseInt(dec, 10))
+        )
+        // Handle &#xXXXX; HTML entity format (hex)
+        .replace(/&#x([0-9a-fA-F]+);/g, (match, hex) => 
+          String.fromCodePoint(parseInt(hex, 16))
+        );
+      console.log("Decoded unicode:", decodedText);
     }
   } catch (e) {
     throw new Error(e.message); // Throw error to be caught by the caller

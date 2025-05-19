@@ -17,7 +17,7 @@ These features directly address needs in phishing analysis, such as handling var
    - **Dependencies**: None.
    - **Effort**: Medium (update `background.js` with new decoding logic and context menu items).
    - **Timeline**: Week 1 (May 19–25, 2025).
-   - **Status**: Partially complete (Hex decoding added; HTML Entity, ROT13, Unicode Escape, and encoding options pending).
+   - **Status**: Mostly complete (Hex and Unicode Escape decoding added - including HTML Entity format &#XXX; and &#xXXXX;; ROT13 and encoding options pending).
 
 2. **Multi-Layered Decoding**  
    - **Description**: Add recursive decoding for nested encodings and a step-by-step decode option.
@@ -101,4 +101,4 @@ These features cater to advanced users and improve the overall experience.
   - `"storage"`: For saving history, custom rules, and themes (Features #8, #9, #10).
   - `"https://www.virustotal.com/*"`: For VirusTotal integration (Feature #3, if using API).
 
-*Last updated: Saturday, May 18, 2025*
+*Last updated: Monday, May 19, 2025*
