@@ -17,7 +17,7 @@ These features directly address needs in phishing analysis, such as handling var
    - **Dependencies**: None.
    - **Effort**: Medium (update `background.js` with new decoding logic and context menu items).
    - **Timeline**: Week 1 (May 19–25, 2025).
-   - **Status**: Mostly complete (Hex and Unicode Escape decoding added - including HTML Entity format &#XXX; and &#xXXXX;; ROT13 and encoding options pending).
+   - **Status**: Mostly complete (Hex and Unicode Escape decoding added - including HTML Entity format &#XXX; and &#xXXXX;; automatic parsing of escaped chars like \n, \t; smart detection to handle hex-like input in base64 decoder; ROT13 and encoding options pending).
 
 2. **Multi-Layered Decoding**  
    - **Description**: Add recursive decoding for nested encodings and a step-by-step decode option.
@@ -42,7 +42,11 @@ These features improve the user experience and make the extension more practical
    - **Dependencies**: None.
    - **Effort**: High (create content scripts, update `manifest.json`, modify `background.js`).
    - **Timeline**: Weeks 4–5 (June 9–22, 2025).
-   - **Status**: Complete (May 18, 2025) - Implemented toast notifications with selectable text and close button that appear in the browser window.
+   - **Status**: Complete (May 19, 2025) - Implemented toast notifications with selectable text and close button that appear in the browser window. Added additional improvements including:
+     - Using `<pre>` elements to properly preserve whitespace and display newlines/tabs from decoded content
+     - Visual enhancements with subtle background and border highlight for better readability
+     - Dynamic width adjustment for longer messages
+     - Improved error messages with specific suggestions based on error type
 
 5. **Detect Encoding Type Automatically**  
    - **Description**: Add "Auto Decode" and "Show All Decodings" to detect and display possible encodings.
@@ -101,4 +105,4 @@ These features cater to advanced users and improve the overall experience.
   - `"storage"`: For saving history, custom rules, and themes (Features #8, #9, #10).
   - `"https://www.virustotal.com/*"`: For VirusTotal integration (Feature #3, if using API).
 
-*Last updated: Monday, May 19, 2025*
+*Last updated: Monday, May 19, 2025 - Added base64 decoding improvements and escaped character handling*

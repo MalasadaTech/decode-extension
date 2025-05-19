@@ -92,9 +92,10 @@ The extension uses WebExtension APIs to provide decoding functionality:
 - **Context Menu**: The `contextMenus` API adds "Decode as URL-encoded", "Decode as Base64-encoded", "Decode as Hex", and "Decode as Unicode Escape" options to the right-click menu when text is selected.
 - **Decoding**: The `scripting` API runs a function in the active tab to decode the selected text using:
   - `decodeURIComponent()` for URL-encoded strings.
-  - `atob()` for Base64-encoded strings.
+  - `atob()` for Base64-encoded strings, with intelligent detection for hex-like input that might look like base64.
   - Hex decoding by converting pairs of hex digits to characters using `parseInt(hex, 16)` and `String.fromCharCode`.
   - Unicode escape decoding that handles `\uXXXX`, `\u{XXXXX}`, `&#XXXXX;`, and `&#xXXXX;` formats using regular expressions and `String.fromCodePoint`.
+  - Automatic parsing of common escaped characters like `\n`, `\t`, `\r` regardless of the decoding type used.
 - **Output**: The decoded result (or an error message) is displayed in a toast notification that appears in the top-right corner of the browser window. The notification includes a close button and remains visible for 30 seconds, allowing users to easily copy the decoded text.
 
 ## Screenshots
@@ -104,6 +105,14 @@ The following screenshots demonstrate the extension in action, decoding obfuscat
 ![Screenshot 1](screenshot-01.png)
 
 ![Screenshot 2](screenshot-02.png)
+
+The following screenshots show how escaped characters are automatically rendered.
+
+https://urlscan.io/responses/3ee1d79f10fe4de27b5fed576b647f10aae21b1f73e061e53bd65bfee5f9ca76/
+
+![Screenshot 3](screenshot-03.png)
+
+![Screenshot 4](screenshot-04.png)
 
 ## Permissions
 
@@ -126,8 +135,11 @@ These permissions ensure the extension can interact with webpages and handle use
 - **Context Menu Not Appearing**:
   - Ensure text is selected before right-clicking.
   - Reload the extension (Firefox: `about:debugging`, Chrome: `chrome://extensions/`) and check the console for errors (`Ctrl+Shift+J`).
-- **Decoding Errors**:
-  - Verify the selected text is a valid URL-encoded, Base64-encoded, or Hex-encoded string.
+- **Base64 Decoding Issues with Hex-like Data**:
+  - The extension now intelligently detects when input that looks like hex (space-separated values, comma-separated values, or 0x-prefixed) is selected for base64 decoding and will handle it appropriately.
+  - If you're still seeing issues, try using "Decode as Hex" directly for hex-formatted data.
+- **Other Decoding Errors**:
+  - Verify the selected text is a valid URL-encoded, Base64-encoded, Hex-encoded, or Unicode-escaped string.
   - Non-standard encodings may not be supported.
 
 ## For Developers
@@ -154,13 +166,19 @@ Contributions are welcome! Fork the repository and submit a pull request with yo
 
 - **Main Document Only**: Works on the main webpage, not within iframes or embedded content.
 - **Basic Decoding**: Uses `decodeURIComponent`, `atob`, hex decoding, and Unicode escape decoding, which may not handle non-standard or multi-layered encodings.
-- **Alert Output**: Results appear in a toast notification with selectable text and a close button, allowing for easy copying.
-- **Error Messages**: Invalid input triggers a generic error without detailed feedback.
+- **Toast Notification**: Results appear in a toast notification with selectable text and a close button, allowing for easy copying.
+- **Error Messages**: Invalid input now provides descriptive error messages with suggestions (e.g., suggesting to use "Decode as Hex" when base64 decoding fails on hex-like input).
 
-Future updates could add support for more encodings or a better result display.
+Recent improvements include:
+- Robust base64 decoding that handles ambiguous input (hex-formatted data that might be selected as base64)
+- Automatic parsing of escape sequences like `\n` and `\t` in all decoded text
+- Improved toast notification display with proper whitespace preservation
+- Descriptive error messages with helpful suggestions
+
+Future updates could add support for more encodings or additional display options.
 
 ## License
 
 This project is licensed under the [MIT License](LICENSE). See the [LICENSE](LICENSE) file for details.
 
-*Last updated: Monday, May 19, 2025*
+*Last updated: Monday, May 19, 2025 - Added base64 decoding improvements and escaped character handling*

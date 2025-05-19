@@ -40,6 +40,19 @@
 
 .decode-toast-message {
   user-select: all; /* Makes the text easier to select */
+  white-space: pre-wrap; /* Preserve white space but allow wrapping */
+  font-family: monospace; /* Better for displaying code and special characters */
+  max-height: 300px; /* Limit height */
+  overflow-y: auto; /* Add scrollbar if content is too long */
+  margin: 0; /* Remove default margin from pre element */
+  word-break: break-word; /* Allow long words to break */
+  color: white; /* Explicitly set text color to match the toast's default text color */
+  background: transparent; /* Ensure background is transparent (pre elements sometimes have their own bg) */
+  padding: 8px; /* Add some padding around the text */
+  border-radius: 3px; /* Rounded corners */
+  border-left: 3px solid #5a9bef; /* Add a subtle highlight on the left side */
+  margin-top: 5px; /* Add a little space above the message */
+  background-color: rgba(255, 255, 255, 0.1); /* Very subtle background for better readability */
 }
 
 @keyframes fadeIn {
