@@ -2,7 +2,7 @@
 
 ![Firefox](https://img.shields.io/badge/Firefox-Extension-orange) ![Chrome](https://img.shields.io/badge/Chrome-Extension-blue) ![License](https://img.shields.io/badge/License-MIT-blue)
 
-**Decode Extension** is a browser extension for Firefox and Chrome that allows users to decode URL-encoded or Base64-encoded strings directly from the context menu. With a simple right-click, you can decode selected text and view the result in an alert box, making it a handy tool for web developers, security researchers, and anyone who frequently encounters encoded strings.
+**Decode Extension** is a browser extension for Firefox and Chrome that allows users to decode URL-encoded, Base64-encoded, and Hex-encoded strings directly from the context menu. With a simple right-click, you can decode selected text and view the result in an alert box, making it a handy tool for web developers, security researchers, and anyone who frequently encounters encoded strings.
 
 ## Table of Contents
 
@@ -22,7 +22,7 @@
 
 ## Why Use This Extension
 
-Encoded strings, such as URL-encoded (`https%3A%2F%2Fexample.com`) or Base64-encoded (`aHR0cHM6Ly9leGFtcGxlLmNvbQ==`) text, are common in web development, security analysis, and data handling. Decoding these manually or with external tools can slow you down. This extension offers a fast, in-browser solution to decode selected text instantly, enhancing your productivity.
+Encoded strings, such as URL-encoded (`https%3A%2F%2Fexample.com`), Base64-encoded (`aHR0cHM6Ly9leGFtcGxlLmNvbQ==`), or Hex-encoded (`48656C6C6F`) text, are common in web development, security analysis, and data handling. Decoding these manually or with external tools can slow you down. This extension offers a fast, in-browser solution to decode selected text instantly, enhancing your productivity.
 
 - **Web Developers**: Decode query parameters or encoded URLs while debugging.
 - **Security Researchers**: Analyze obfuscated strings in phishing attempts or scripts.
@@ -74,11 +74,12 @@ You can also submit the extension to the [Firefox Add-ons Store](https://addons.
 
 Using the extension is simple:
 
-1. **Highlight** an encoded string on a webpage (e.g., `https%3A%2F%2Fexample.com` or `aHR0cHM6Ly9leGFtcGxlLmNvbQ==`).
+1. **Highlight** an encoded string on a webpage (e.g., `https%3A%2F%2Fexample.com`, `aHR0cHM6Ly9leGFtcGxlLmNvbQ==`, or `48656C6C6F`).
 2. **Right-click** the selected text to open the context menu.
 3. Select one of the following options:
    - **"Decode as URL-encoded"**: Decodes URL-encoded strings (e.g., `https://example.com`).
    - **"Decode as Base64-encoded"**: Decodes Base64-encoded strings (e.g., `https://example.com`).
+   - **"Decode as Hex"**: Decodes Hex-encoded strings (e.g., `48656C6C6F` → `Hello`).
 4. View the decoded result in an alert box.
 
 **Note**: If the text isn’t a valid encoded string, an error message will appear in the alert.
@@ -87,10 +88,11 @@ Using the extension is simple:
 
 The extension uses WebExtension APIs to provide decoding functionality:
 
-- **Context Menu**: The `contextMenus` API adds "Decode as URL-encoded" and "Decode as Base64-encoded" options to the right-click menu when text is selected.
+- **Context Menu**: The `contextMenus` API adds "Decode as URL-encoded", "Decode as Base64-encoded", and "Decode as Hex" options to the right-click menu when text is selected.
 - **Decoding**: The `scripting` API runs a function in the active tab to decode the selected text using:
   - `decodeURIComponent()` for URL-encoded strings.
   - `atob()` for Base64-encoded strings.
+  - Hex decoding by converting pairs of hex digits to characters using `parseInt(hex, 16)` and `String.fromCharCode`.
 - **Output**: The decoded result (or an error message) is displayed via an alert box.
 
 ## Screenshots
@@ -123,7 +125,7 @@ These permissions ensure the extension can interact with webpages and handle use
   - Ensure text is selected before right-clicking.
   - Reload the extension (Firefox: `about:debugging`, Chrome: `chrome://extensions/`) and check the console for errors (`Ctrl+Shift+J`).
 - **Decoding Errors**:
-  - Verify the selected text is a valid URL-encoded or Base64-encoded string.
+  - Verify the selected text is a valid URL-encoded, Base64-encoded, or Hex-encoded string.
   - Non-standard encodings may not be supported.
 
 ## For Developers
@@ -149,7 +151,7 @@ Contributions are welcome! Fork the repository and submit a pull request with yo
 ## Limitations
 
 - **Main Document Only**: Works on the main webpage, not within iframes or embedded content.
-- **Basic Decoding**: Uses `decodeURIComponent` and `atob`, which may not handle non-standard or multi-layered encodings.
+- **Basic Decoding**: Uses `decodeURIComponent`, `atob`, and hex decoding, which may not handle non-standard or multi-layered encodings.
 - **Alert Output**: Results appear in an alert box, which is simple but limits interaction (e.g., no copying).
 - **Error Messages**: Invalid input triggers a generic error without detailed feedback.
 
@@ -159,4 +161,4 @@ Future updates could add support for more encodings or a better result display.
 
 This project is licensed under the [MIT License](LICENSE). See the [LICENSE](LICENSE) file for details.
 
-*Last updated: Sunday, May 18, 2025, 12:21 PM HST*
+*Last updated: Sunday, May 18, 2025, 04:29 PM HST*

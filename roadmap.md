@@ -17,6 +17,7 @@ These features directly address needs in phishing analysis, such as handling var
    - **Dependencies**: None.
    - **Effort**: Medium (update `background.js` with new decoding logic and context menu items).
    - **Timeline**: Week 1 (May 19–25, 2025).
+   - **Status**: Partially complete (Hex decoding added; HTML Entity, ROT13, Unicode Escape, and encoding options pending).
 
 2. **Multi-Layered Decoding**  
    - **Description**: Add recursive decoding for nested encodings and a step-by-step decode option.
@@ -110,6 +111,8 @@ These features cater to advanced users and improve the overall experience.
 Use this checklist to track implementation progress:
 
 1. [ ] Support Additional Encoding/Decoding Types  
+   - [x] Hex decoding added  
+   - [ ] HTML Entity, ROT13, Unicode Escape, and encoding options pending  
 2. [ ] Multi-Layered Decoding  
 3. [ ] Integration with External Tools  
 4. [ ] Improved Output Display  
@@ -126,4 +129,4 @@ Use this checklist to track implementation progress:
 - **Testing**: Test each feature in both Firefox and Chrome, using the `manifest_version_2` and `manifest_version_3` directories as appropriate.
 - **Documentation**: Update `README.md` after each feature to reflect new functionality, permissions, and usage instructions.
 
-*Last updated: Sunday, May 18, 2025, 04:25 PM HST*
+*Last updated: Sunday, May 18, 2025, 04:29 PM HST*

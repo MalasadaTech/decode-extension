@@ -11,6 +11,12 @@ browser.contextMenus.create({
   contexts: ["selection"]
 });
 
+browser.contextMenus.create({
+  id: "decodeHex",
+  title: "Decode as Hex",
+  contexts: ["selection"]
+});
+
 // Listen for context menu clicks
 browser.contextMenus.onClicked.addListener((info, tab) => {
   if (info.menuItemId === "decodeUrl") {
@@ -25,6 +31,12 @@ browser.contextMenus.onClicked.addListener((info, tab) => {
       func: decodeSelectedText,
       args: ["base64"]
     });
+  } else if (info.menuItemId === "decodeHex") {
+    browser.scripting.executeScript({
+      target: { tabId: tab.id },
+      func: decodeSelectedText,
+      args: ["hex"]
+    });
   }
 });
 
@@ -37,6 +49,13 @@ function decodeSelectedText(type) {
       decodedText = decodeURIComponent(selectedText);
     } else if (type === "base64") {
       decodedText = atob(selectedText);
+    } else if (type === "hex") {
+      // Remove any spaces, 0x prefixes, or other non-hex characters
+      const hex = selectedText.replace(/[^0-9A-Fa-f]/g, '');
+      decodedText = '';
+      for (let i = 0; i < hex.length; i += 2) {
+        decodedText += String.fromCharCode(parseInt(hex.substr(i, 2), 16));
+      }
     }
   } catch (e) {
     decodedText = "Error decoding: " + e.message;
