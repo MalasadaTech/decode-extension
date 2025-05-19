@@ -2,7 +2,7 @@
 
 ![Firefox](https://img.shields.io/badge/Firefox-Extension-orange) ![Chrome](https://img.shields.io/badge/Chrome-Extension-blue) ![License](https://img.shields.io/badge/License-MIT-blue)
 
-**Decode Extension** is a browser extension for Firefox and Chrome that allows users to decode URL-encoded, Base64-encoded, and Hex-encoded strings directly from the context menu. With a simple right-click, you can decode selected text and view the result in an alert box, making it a handy tool for web developers, security researchers, and anyone who frequently encounters encoded strings.
+**Decode Extension** is a browser extension for Firefox and Chrome that allows users to decode URL-encoded, Base64-encoded, and Hex-encoded strings directly from the context menu. With a simple right-click, you can decode selected text and view the result in a toast notification, making it a handy tool for web developers, security researchers, and anyone who frequently encounters encoded strings.
 
 ## Table of Contents
 
@@ -80,9 +80,9 @@ Using the extension is simple:
    - **"Decode as URL-encoded"**: Decodes URL-encoded strings (e.g., `https://example.com`).
    - **"Decode as Base64-encoded"**: Decodes Base64-encoded strings (e.g., `https://example.com`).
    - **"Decode as Hex"**: Decodes Hex-encoded strings (e.g., `48656C6C6F` → `Hello`).
-4. View the decoded result in an alert box.
+4. View the decoded result in a toast notification within the browser window.
 
-**Note**: If the text isn’t a valid encoded string, an error message will appear in the alert.
+**Note**: If the text isn't a valid encoded string, an error message will appear in the notification.
 
 ## How It Works
 
@@ -93,7 +93,7 @@ The extension uses WebExtension APIs to provide decoding functionality:
   - `decodeURIComponent()` for URL-encoded strings.
   - `atob()` for Base64-encoded strings.
   - Hex decoding by converting pairs of hex digits to characters using `parseInt(hex, 16)` and `String.fromCharCode`.
-- **Output**: The decoded result (or an error message) is displayed via an alert box.
+- **Output**: The decoded result (or an error message) is displayed in a toast notification that appears in the top-right corner of the browser window. The notification includes a close button and remains visible for 30 seconds, allowing users to easily copy the decoded text.
 
 ## Screenshots
 
@@ -152,7 +152,7 @@ Contributions are welcome! Fork the repository and submit a pull request with yo
 
 - **Main Document Only**: Works on the main webpage, not within iframes or embedded content.
 - **Basic Decoding**: Uses `decodeURIComponent`, `atob`, and hex decoding, which may not handle non-standard or multi-layered encodings.
-- **Alert Output**: Results appear in an alert box, which is simple but limits interaction (e.g., no copying).
+- **Alert Output**: Results appear in a toast notification with selectable text and a close button, allowing for easy copying.
 - **Error Messages**: Invalid input triggers a generic error without detailed feedback.
 
 Future updates could add support for more encodings or a better result display.
@@ -161,4 +161,4 @@ Future updates could add support for more encodings or a better result display.
 
 This project is licensed under the [MIT License](LICENSE). See the [LICENSE](LICENSE) file for details.
 
-*Last updated: Sunday, May 18, 2025, 04:29 PM HST*
+*Last updated: Saturday, May 18, 2025*

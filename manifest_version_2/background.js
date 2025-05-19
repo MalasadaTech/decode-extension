@@ -24,24 +24,37 @@ browser.contextMenus.onClicked.addListener((info, tab) => {
       target: { tabId: tab.id },
       func: decodeSelectedText,
       args: ["url"]
+    }).then((results) => {
+      showNotification(results[0].result);
+    }).catch((error) => {
+      showNotification("Error decoding: " + error.message);
     });
   } else if (info.menuItemId === "decodeBase64") {
     browser.scripting.executeScript({
       target: { tabId: tab.id },
       func: decodeSelectedText,
       args: ["base64"]
+    }).then((results) => {
+      showNotification(results[0].result);
+    }).catch((error) => {
+      showNotification("Error decoding: " + error.message);
     });
   } else if (info.menuItemId === "decodeHex") {
     browser.scripting.executeScript({
       target: { tabId: tab.id },
       func: decodeSelectedText,
       args: ["hex"]
+    }).then((results) => {
+      showNotification(results[0].result);
+    }).catch((error) => {
+      showNotification("Error decoding: " + error.message);
     });
   }
 });
 
-// Function to decode the selected text and display the result
+// Function to decode the selected text and return the result
 function decodeSelectedText(type) {
+  console.log("Decoding type:", type, "for selected text");
   const selectedText = window.getSelection().toString();
   let decodedText;
   try {
@@ -50,15 +63,43 @@ function decodeSelectedText(type) {
     } else if (type === "base64") {
       decodedText = atob(selectedText);
     } else if (type === "hex") {
+      console.log("Decoding type: hex");
+      console.log("Selected text:", selectedText);
       // Remove any spaces, 0x prefixes, or other non-hex characters
       const hex = selectedText.replace(/[^0-9A-Fa-f]/g, '');
       decodedText = '';
       for (let i = 0; i < hex.length; i += 2) {
         decodedText += String.fromCharCode(parseInt(hex.substr(i, 2), 16));
       }
+      console.log("Decoded hex:", decodedText);
     }
   } catch (e) {
-    decodedText = "Error decoding: " + e.message;
+    throw new Error(e.message); // Throw error to be caught by the caller
   }
-  alert("Decoded text:\n" + decodedText);
+  return decodedText; // Return result to background script
+}
+
+// Function to show in-browser toast notification
+function showNotification(text) {
+  console.log("Creating toast notification with text:", text);
+  
+  // Get the active tab to show the toast in
+  browser.tabs.query({active: true, currentWindow: true})
+    .then(function(tabs) {
+      if (tabs && tabs.length > 0) {
+        // Send message to the content script
+        browser.tabs.sendMessage(tabs[0].id, {
+          action: "showToast",
+          title: "Decode Extension",
+          message: text
+        }).then(function(response) {
+          console.log("Toast notification shown successfully");
+        }).catch(function(error) {
+          console.error("Error showing toast notification:", error);
+        });
+      }
+    })
+    .catch(function(error) {
+      console.error("Error finding active tab:", error);
+    });
 }

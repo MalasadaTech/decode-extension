@@ -1,10 +1,10 @@
 # Decode Extension Development Roadmap
 
-This roadmap outlines the planned enhancements for the **Decode Extension**, a browser extension for Firefox and Chrome that decodes URL-encoded and Base64-encoded strings via a context menu. The goal is to enhance its functionality for web developers, security researchers, and general users, with a focus on phishing analysis (e.g., on urlscan.io).
+This roadmap outlines the planned enhancements for the **Decode Extension**, a browser extension for Firefox and Chrome that decodes URL-encoded, Base64-encoded, and Hex-encoded strings via a context menu. The goal is to enhance its functionality for web developers, security researchers, and general users, with a focus on phishing analysis (e.g., on urlscan.io).
 
 ## Overview
 
-The extension currently supports decoding URL-encoded and Base64-encoded strings with a right-click context menu, displaying results in an alert box. The following features will expand its capabilities, improve usability, and streamline workflows for security research.
+The extension currently supports decoding URL-encoded, Base64-encoded, and Hex-encoded strings with a right-click context menu, displaying results in a toast notification. The following features will expand its capabilities, improve usability, and streamline workflows for security research.
 
 ## Planned Features
 
@@ -39,9 +39,10 @@ These features improve the user experience and make the extension more practical
 4. **Improved Output Display**  
    - **Description**: Replace alerts with browser notifications, clipboard copying, a popup window, and inline display.
    - **Why**: Alerts are disruptive; better output methods enhance usability.
-   - **Dependencies**: New permissions (`"notifications"`, `"clipboardWrite"`).
-   - **Effort**: High (create `popup.html`, update `manifest.json`, modify `background.js`).
+   - **Dependencies**: None.
+   - **Effort**: High (create content scripts, update `manifest.json`, modify `background.js`).
    - **Timeline**: Weeks 4–5 (June 9–22, 2025).
+   - **Status**: Complete (May 18, 2025) - Implemented toast notifications with selectable text and close button that appear in the browser window.
 
 5. **Detect Encoding Type Automatically**  
    - **Description**: Add "Auto Decode" and "Show All Decodings" to detect and display possible encodings.
@@ -94,39 +95,10 @@ These features cater to advanced users and improve the overall experience.
 ## Dependencies and Permissions
 
 - **New Permissions**:
-  - `"notifications"`: For browser notifications (Feature #4).
+  - ~~`"notifications"`~~: For browser notifications (Feature #4). - Not needed for custom in-browser toast notifications
   - `"clipboardWrite"`: For copying to clipboard (Feature #4).
   - `"downloads"`: For exporting batch results (Feature #7).
   - `"storage"`: For saving history, custom rules, and themes (Features #8, #9, #10).
   - `"https://www.virustotal.com/*"`: For VirusTotal integration (Feature #3, if using API).
-- **New Files**:
-  - `popup.html`: For improved output display (Feature #4).
-  - `batch.html`: For batch decoding (Feature #7).
-  - `history.html`: For decoding history (Feature #8).
-  - `settings.html`: For custom rules and themes (Features #9, #10).
-  - `content.js`: For highlighting encoded strings (Feature #6).
 
-## Progress Tracking
-
-Use this checklist to track implementation progress:
-
-1. [ ] Support Additional Encoding/Decoding Types  
-   - [x] Hex decoding added  
-   - [ ] HTML Entity, ROT13, Unicode Escape, and encoding options pending  
-2. [ ] Multi-Layered Decoding  
-3. [ ] Integration with External Tools  
-4. [ ] Improved Output Display  
-5. [ ] Detect Encoding Type Automatically  
-6. [ ] Highlight Encoded Strings on Page  
-7. [ ] Batch Decoding  
-8. [ ] Encoding/Decoding History  
-9. [ ] Custom Encoding/Decoding Rules  
-10. [ ] Theme Support and Customization  
-
-## Notes
-
-- **Timeline**: The timeline assumes 1–2 weeks per feature, starting from May 19, 2025, with a total duration of 13 weeks (ending August 17, 2025). Adjust based on your availability.
-- **Testing**: Test each feature in both Firefox and Chrome, using the `manifest_version_2` and `manifest_version_3` directories as appropriate.
-- **Documentation**: Update `README.md` after each feature to reflect new functionality, permissions, and usage instructions.
-
-*Last updated: Sunday, May 18, 2025, 04:29 PM HST*
+*Last updated: Saturday, May 18, 2025*

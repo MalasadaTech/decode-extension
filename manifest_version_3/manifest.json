@@ -3,8 +3,31 @@
   "name": "Decode Extension",
   "version": "1.0",
   "description": "Decode selected text as URL-encoded or Base64-encoded.",
-  "permissions": ["contextMenus", "activeTab", "scripting"],
-  "background": {
+  "permissions": [
+    "contextMenus",
+    "activeTab", 
+    "scripting"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],  "background": {
     "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["toast.js"],
+      "css": ["toast.css"],
+      "run_at": "document_end",
+      "all_frames": true
+    }
+  ],
+  "action": {
+    "default_icon": "icon.png",
+    "default_title": "Decode Extension"
+  },
+  "icons": {
+    "48": "icon.png",
+    "128": "icon.png"
   }
 }
