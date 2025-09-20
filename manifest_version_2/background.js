@@ -56,6 +56,13 @@ browser.contextMenus.create({
   contexts: ["selection"]
 });
 
+browser.contextMenus.create({
+  id: "virustotal",
+  title: "VT",
+  parentId: "analysis",
+  contexts: ["selection"]
+});
+
 // Listen for context menu clicks
 browser.contextMenus.onClicked.addListener((info, tab) => {
   if (info.menuItemId === "decodeUrl") {
@@ -200,6 +207,59 @@ browser.contextMenus.onClicked.addListener((info, tab) => {
         });
       } else {
         showNotification("No text selected for MXTOOLBOX lookup");
+      }
+    }).catch((error) => {
+      showNotification("Error getting selected text: " + error.message);
+    });
+  } else if (info.menuItemId === "virustotal") {
+    // Get the selected text and open VirusTotal in a new tab
+    browser.scripting.executeScript({
+      target: { tabId: tab.id },
+      func: () => window.getSelection().toString()
+    }).then((results) => {
+      const selectedText = results[0].result.trim();
+      if (selectedText) {
+        // Function to detect input type and construct appropriate URL
+        function getVirusTotalUrl(input) {
+          // Check if it's an IP address (IPv4 or IPv6)
+          const ipv4Regex = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
+          const ipv6Regex = /^(([0-9a-fA-F]{1,4}:){7,7}[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,7}:|([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}|([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}|([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}|([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,6})|:((:[0-9a-fA-F]{1,4}){1,7}|:)|fe80:(:[0-9a-fA-F]{0,4}){0,4}%[0-9a-zA-Z]{1,}|::(ffff(:0{1,4}){0,1}:){0,1}((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])|([0-9a-fA-F]{1,4}:){1,4}:((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9]))$/;
+          
+          if (ipv4Regex.test(input) || ipv6Regex.test(input)) {
+            return `https://www.virustotal.com/gui/ip-address/${encodeURIComponent(input)}`;
+          }
+          
+          // Check if it's a hash (MD5, SHA1, SHA256, etc.)
+          // Common hash lengths: MD5 (32), SHA1 (40), SHA256 (64), SHA384 (96), SHA512 (128)
+          const hashRegex = /^[a-fA-F0-9]{32,128}$/;
+          if (hashRegex.test(input.replace(/\s/g, ''))) {
+            return `https://www.virustotal.com/gui/file/${encodeURIComponent(input)}`;
+          }
+          
+          // Default to domain
+          return `https://www.virustotal.com/gui/domain/${encodeURIComponent(input)}`;
+        }
+        
+        const url = getVirusTotalUrl(selectedText);
+        
+        // Create the new tab
+        browser.tabs.create({ url: url }).then((newTab) => {
+          // Check if the originating tab is in a tab group
+          if (tab.cookieStoreId && tab.cookieStoreId !== 'firefox-default') {
+            // Firefox uses cookieStoreId for tab grouping (containers)
+            // Move the new tab to the same container as the originating tab
+            browser.tabs.update(newTab.id, { cookieStoreId: tab.cookieStoreId }).then(() => {
+              console.log("Successfully moved new tab to the same container");
+            }).catch((error) => {
+              console.log("Could not move tab to container:", error.message);
+              // Tab was created successfully but couldn't be grouped - this is not a critical error
+            });
+          }
+        }).catch((error) => {
+          showNotification("Error creating new tab: " + error.message);
+        });
+      } else {
+        showNotification("No text selected for VirusTotal lookup");
       }
     }).catch((error) => {
       showNotification("Error getting selected text: " + error.message);
