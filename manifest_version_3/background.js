@@ -45,6 +45,13 @@ chrome.runtime.onInstalled.addListener(function() {
     contexts: ["selection"]
   });
 
+  chrome.contextMenus.create({
+    id: "whois",
+    title: "WHOIS",
+    parentId: "analysis",
+    contexts: ["selection"]
+  });
+
   console.log("Decode Extension initialized successfully");
 });
 
@@ -158,6 +165,40 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
           });
         } else {
           showNotification("No text selected for domain lookup");
+        }
+      }
+    });
+  } else if (info.menuItemId === "whois") {
+    // Get the selected text and open whois.com in a new tab
+    chrome.scripting.executeScript({
+      target: { tabId: tab.id },
+      func: () => window.getSelection().toString()
+    }, (injectionResults) => {
+      if (chrome.runtime.lastError) {
+        console.error("Script injection failed:", chrome.runtime.lastError);
+        showNotification("Error getting selected text: " + chrome.runtime.lastError.message);
+      } else if (injectionResults && injectionResults[0]) {
+        const selectedText = injectionResults[0].result.trim();
+        if (selectedText) {
+          const url = `https://www.whois.com/whois/${encodeURIComponent(selectedText)}`;
+          
+          // Create the new tab
+          chrome.tabs.create({ url: url }, (newTab) => {
+            // Check if the originating tab is in a tab group
+            if (tab.groupId && tab.groupId !== -1) {
+              // Move the new tab to the same group as the originating tab
+              chrome.tabs.group({ tabIds: [newTab.id], groupId: tab.groupId }, () => {
+                if (chrome.runtime.lastError) {
+                  console.log("Could not move tab to group:", chrome.runtime.lastError.message);
+                  // Tab was created successfully but couldn't be grouped - this is not a critical error
+                } else {
+                  console.log("Successfully moved new tab to the same group");
+                }
+              });
+            }
+          });
+        } else {
+          showNotification("No text selected for WHOIS lookup");
         }
       }
     });
