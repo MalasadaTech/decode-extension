@@ -29,6 +29,19 @@ browser.contextMenus.create({
   contexts: ["selection"]
 });
 
+browser.contextMenus.create({
+  id: "analysis",
+  title: "Analysis",
+  contexts: ["selection"]
+});
+
+browser.contextMenus.create({
+  id: "nslookup",
+  title: "NsLookup.io",
+  parentId: "analysis",
+  contexts: ["selection"]
+});
+
 // Listen for context menu clicks
 browser.contextMenus.onClicked.addListener((info, tab) => {
   if (info.menuItemId === "decodeUrl") {
@@ -80,6 +93,38 @@ browser.contextMenus.onClicked.addListener((info, tab) => {
       showNotification(results[0].result);
     }).catch((error) => {
       showNotification("Error decoding: " + error.message);
+    });
+  } else if (info.menuItemId === "nslookup") {
+    // Get the selected text and open nslookup.io in a new tab
+    browser.scripting.executeScript({
+      target: { tabId: tab.id },
+      func: () => window.getSelection().toString()
+    }).then((results) => {
+      const selectedText = results[0].result.trim();
+      if (selectedText) {
+        const url = `https://www.nslookup.io/domains/${encodeURIComponent(selectedText)}/dns-records/`;
+        
+        // Create the new tab
+        browser.tabs.create({ url: url }).then((newTab) => {
+          // Check if the originating tab is in a tab group
+          if (tab.cookieStoreId && tab.cookieStoreId !== 'firefox-default') {
+            // Firefox uses cookieStoreId for tab grouping (containers)
+            // Move the new tab to the same container as the originating tab
+            browser.tabs.update(newTab.id, { cookieStoreId: tab.cookieStoreId }).then(() => {
+              console.log("Successfully moved new tab to the same container");
+            }).catch((error) => {
+              console.log("Could not move tab to container:", error.message);
+              // Tab was created successfully but couldn't be grouped - this is not a critical error
+            });
+          }
+        }).catch((error) => {
+          showNotification("Error creating new tab: " + error.message);
+        });
+      } else {
+        showNotification("No text selected for domain lookup");
+      }
+    }).catch((error) => {
+      showNotification("Error getting selected text: " + error.message);
     });
   }
 });
