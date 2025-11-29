@@ -66,6 +66,27 @@ chrome.runtime.onInstalled.addListener(function() {
     contexts: ["selection"]
   });
 
+  chrome.contextMenus.create({
+    id: "urlscan",
+    title: "urlscan.io",
+    parentId: "analysis",
+    contexts: ["selection"]
+  });
+
+  chrome.contextMenus.create({
+    id: "urlscanSearch",
+    title: "search",
+    parentId: "urlscan",
+    contexts: ["selection"]
+  });
+
+  chrome.contextMenus.create({
+    id: "urlscanPageTitle",
+    title: "page.title",
+    parentId: "urlscan",
+    contexts: ["selection"]
+  });
+
   console.log("Decode Extension initialized successfully");
 });
 
@@ -302,6 +323,76 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
           });
         } else {
           showNotification("No text selected for VirusTotal lookup");
+        }
+      }
+    });
+  } else if (info.menuItemId === "urlscanSearch") {
+    // Get the selected text and open urlscan.io in a new tab
+    chrome.scripting.executeScript({
+      target: { tabId: tab.id },
+      func: () => window.getSelection().toString()
+    }, (injectionResults) => {
+      if (chrome.runtime.lastError) {
+        console.error("Script injection failed:", chrome.runtime.lastError);
+        showNotification("Error getting selected text: " + chrome.runtime.lastError.message);
+      } else if (injectionResults && injectionResults[0]) {
+        const selectedText = injectionResults[0].result.trim();
+        if (selectedText) {
+          // Re-fang the selected text by removing defanging characters
+          const refangedText = selectedText.replace(/[\[\]{}\/\\]/g, '');
+          const url = `https://urlscan.io/search/#${encodeURIComponent(refangedText)}`;
+          
+          // Create the new tab
+          chrome.tabs.create({ url: url }, (newTab) => {
+            // Check if the originating tab is in a tab group
+            if (tab.groupId && tab.groupId !== -1) {
+              // Move the new tab to the same group as the originating tab
+              chrome.tabs.group({ tabIds: [newTab.id], groupId: tab.groupId }, () => {
+                if (chrome.runtime.lastError) {
+                  console.log("Could not move tab to group:", chrome.runtime.lastError.message);
+                  // Tab was created successfully but couldn't be grouped - this is not a critical error
+                } else {
+                  console.log("Successfully moved new tab to the same group");
+                }
+              });
+            }
+          });
+        } else {
+          showNotification("No text selected for urlscan search");
+        }
+      }
+    });
+  } else if (info.menuItemId === "urlscanPageTitle") {
+    // Get the selected text and open urlscan.io page title search in a new tab
+    chrome.scripting.executeScript({
+      target: { tabId: tab.id },
+      func: () => window.getSelection().toString()
+    }, (injectionResults) => {
+      if (chrome.runtime.lastError) {
+        console.error("Script injection failed:", chrome.runtime.lastError);
+        showNotification("Error getting selected text: " + chrome.runtime.lastError.message);
+      } else if (injectionResults && injectionResults[0]) {
+        const selectedText = injectionResults[0].result.trim();
+        if (selectedText) {
+          const url = `https://urlscan.io/search/#page.title%3A%22${encodeURIComponent(selectedText)}%22`;
+          
+          // Create the new tab
+          chrome.tabs.create({ url: url }, (newTab) => {
+            // Check if the originating tab is in a tab group
+            if (tab.groupId && tab.groupId !== -1) {
+              // Move the new tab to the same group as the originating tab
+              chrome.tabs.group({ tabIds: [newTab.id], groupId: tab.groupId }, () => {
+                if (chrome.runtime.lastError) {
+                  console.log("Could not move tab to group:", chrome.runtime.lastError.message);
+                  // Tab was created successfully but couldn't be grouped - this is not a critical error
+                } else {
+                  console.log("Successfully moved new tab to the same group");
+                }
+              });
+            }
+          });
+        } else {
+          showNotification("No text selected for urlscan page title search");
         }
       }
     });

@@ -63,6 +63,27 @@ browser.contextMenus.create({
   contexts: ["selection"]
 });
 
+browser.contextMenus.create({
+  id: "urlscan",
+  title: "urlscan.io",
+  parentId: "analysis",
+  contexts: ["selection"]
+});
+
+browser.contextMenus.create({
+  id: "urlscanSearch",
+  title: "search",
+  parentId: "urlscan",
+  contexts: ["selection"]
+});
+
+browser.contextMenus.create({
+  id: "urlscanPageTitle",
+  title: "page.title",
+  parentId: "urlscan",
+  contexts: ["selection"]
+});
+
 // Listen for context menu clicks
 browser.contextMenus.onClicked.addListener((info, tab) => {
   if (info.menuItemId === "decodeUrl") {
@@ -260,6 +281,72 @@ browser.contextMenus.onClicked.addListener((info, tab) => {
         });
       } else {
         showNotification("No text selected for VirusTotal lookup");
+      }
+    }).catch((error) => {
+      showNotification("Error getting selected text: " + error.message);
+    });
+  } else if (info.menuItemId === "urlscanSearch") {
+    // Get the selected text and open urlscan.io in a new tab
+    browser.scripting.executeScript({
+      target: { tabId: tab.id },
+      func: () => window.getSelection().toString()
+    }).then((results) => {
+      const selectedText = results[0].result.trim();
+      if (selectedText) {
+        // Re-fang the selected text by removing defanging characters
+        const refangedText = selectedText.replace(/[\[\]{}\/\\]/g, '');
+        const url = `https://urlscan.io/search/#${encodeURIComponent(refangedText)}`;
+        
+        // Create the new tab
+        browser.tabs.create({ url: url }).then((newTab) => {
+          // Check if the originating tab is in a tab group
+          if (tab.cookieStoreId && tab.cookieStoreId !== 'firefox-default') {
+            // Firefox uses cookieStoreId for tab grouping (containers)
+            // Move the new tab to the same container as the originating tab
+            browser.tabs.update(newTab.id, { cookieStoreId: tab.cookieStoreId }).then(() => {
+              console.log("Successfully moved new tab to the same container");
+            }).catch((error) => {
+              console.log("Could not move tab to container:", error.message);
+              // Tab was created successfully but couldn't be grouped - this is not a critical error
+            });
+          }
+        }).catch((error) => {
+          showNotification("Error creating new tab: " + error.message);
+        });
+      } else {
+        showNotification("No text selected for urlscan search");
+      }
+    }).catch((error) => {
+      showNotification("Error getting selected text: " + error.message);
+    });
+  } else if (info.menuItemId === "urlscanPageTitle") {
+    // Get the selected text and open urlscan.io page title search in a new tab
+    browser.scripting.executeScript({
+      target: { tabId: tab.id },
+      func: () => window.getSelection().toString()
+    }).then((results) => {
+      const selectedText = results[0].result.trim();
+      if (selectedText) {
+        const url = `https://urlscan.io/search/#page.title%3A%22${encodeURIComponent(selectedText)}%22`;
+        
+        // Create the new tab
+        browser.tabs.create({ url: url }).then((newTab) => {
+          // Check if the originating tab is in a tab group
+          if (tab.cookieStoreId && tab.cookieStoreId !== 'firefox-default') {
+            // Firefox uses cookieStoreId for tab grouping (containers)
+            // Move the new tab to the same container as the originating tab
+            browser.tabs.update(newTab.id, { cookieStoreId: tab.cookieStoreId }).then(() => {
+              console.log("Successfully moved new tab to the same container");
+            }).catch((error) => {
+              console.log("Could not move tab to container:", error.message);
+              // Tab was created successfully but couldn't be grouped - this is not a critical error
+            });
+          }
+        }).catch((error) => {
+          showNotification("Error creating new tab: " + error.message);
+        });
+      } else {
+        showNotification("No text selected for urlscan page title search");
       }
     }).catch((error) => {
       showNotification("Error getting selected text: " + error.message);
