@@ -1,4 +1,11 @@
 // filepath: d:\SoftwareDevelopment\GitHubRepoClones\decode-extension\manifest_version_3\background.js
+
+// Read configurable thruntellisearch host parameters from manifest
+const thruntellisearchConfig = chrome.runtime.getManifest().thruntellisearch || {};
+const THRUNTELL_SCHEME = thruntellisearchConfig.scheme || "http";
+const THRUNTELL_HOST = thruntellisearchConfig.host || "127.0.0.1";
+const THRUNTELL_PORT = thruntellisearchConfig.port || 5000;
+
 // Initialize the extension
 chrome.runtime.onInstalled.addListener(function() {
   // Create context menu items
@@ -84,6 +91,13 @@ chrome.runtime.onInstalled.addListener(function() {
     id: "urlscanPageTitle",
     title: "page.title",
     parentId: "urlscan",
+    contexts: ["selection"]
+  });
+
+  chrome.contextMenus.create({
+    id: "thruntellisearch",
+    title: "ThreatIntelSearch Orchestrator",
+    parentId: "analysis",
     contexts: ["selection"]
   });
 
@@ -323,6 +337,43 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
           });
         } else {
           showNotification("No text selected for VirusTotal lookup");
+        }
+      }
+    });
+  } else if (info.menuItemId === "thruntellisearch") {
+    chrome.scripting.executeScript({
+      target: { tabId: tab.id },
+      func: () => window.getSelection().toString()
+    }, (injectionResults) => {
+      if (chrome.runtime.lastError) {
+        console.error("Script injection failed:", chrome.runtime.lastError);
+        showNotification("Error getting selected text: " + chrome.runtime.lastError.message);
+      } else if (injectionResults && injectionResults[0]) {
+        const selectedText = injectionResults[0].result.trim();
+        if (selectedText) {
+          // Normalize selection to comma-separated IOC list
+          const iocs = selectedText
+            .split(/[\s,;]+/)
+            .map((v) => v.trim())
+            .filter(Boolean)
+            .join(",");
+
+          const orchestratorUrl = `${THRUNTELL_SCHEME}://${THRUNTELL_HOST}:${THRUNTELL_PORT}/?iocs=${encodeURIComponent(iocs)}&run=true`;
+          console.log("Opening ThreatIntelSearch orchestrator URL:", orchestratorUrl);
+
+          chrome.tabs.create({ url: orchestratorUrl }, (newTab) => {
+            if (tab.groupId && tab.groupId !== -1) {
+              chrome.tabs.group({ tabIds: [newTab.id], groupId: tab.groupId }, () => {
+                if (chrome.runtime.lastError) {
+                  console.log("Could not move tab to group:", chrome.runtime.lastError.message);
+                } else {
+                  console.log("Successfully moved new tab to the same group");
+                }
+              });
+            }
+          });
+        } else {
+          showNotification("No text selected for ThreatIntelSearch orchestrator");
         }
       }
     });

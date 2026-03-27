@@ -9,7 +9,13 @@
   ],
   "host_permissions": [
     "<all_urls>"
-  ],  "background": {
+  ],
+  "thruntellisearch": {
+    "scheme": "http",
+    "host": "127.0.0.1",
+    "port": 5000
+  },
+  "background": {
     "service_worker": "background.js"
   },
   "content_scripts": [

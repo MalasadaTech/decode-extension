@@ -1,3 +1,9 @@
+// Read configurable thruntellisearch host parameters from manifest
+const thruntellisearchConfig = browser.runtime.getManifest().thruntellisearch || {};
+const THRUNTELL_SCHEME = thruntellisearchConfig.scheme || "http";
+const THRUNTELL_HOST = thruntellisearchConfig.host || "127.0.0.1";
+const THRUNTELL_PORT = thruntellisearchConfig.port || 5000;
+
 // Create context menu items
 browser.contextMenus.create({
   id: "decodeUrl",
@@ -81,6 +87,13 @@ browser.contextMenus.create({
   id: "urlscanPageTitle",
   title: "page.title",
   parentId: "urlscan",
+  contexts: ["selection"]
+});
+
+browser.contextMenus.create({
+  id: "thruntellisearch",
+  title: "ThreatIntelSearch Orchestrator",
+  parentId: "analysis",
   contexts: ["selection"]
 });
 
@@ -281,6 +294,37 @@ browser.contextMenus.onClicked.addListener((info, tab) => {
         });
       } else {
         showNotification("No text selected for VirusTotal lookup");
+      }
+    }).catch((error) => {
+      showNotification("Error getting selected text: " + error.message);
+    });
+  } else if (info.menuItemId === "thruntellisearch") {
+    browser.scripting.executeScript({
+      target: { tabId: tab.id },
+      func: () => window.getSelection().toString()
+    }).then((results) => {
+      const selectedText = results[0].result.trim();
+      if (selectedText) {
+        const iocs = selectedText
+          .split(/[\s,;]+/)
+          .map((v) => v.trim())
+          .filter(Boolean)
+          .join(",");
+
+        const orchestratorUrl = `${THRUNTELL_SCHEME}://${THRUNTELL_HOST}:${THRUNTELL_PORT}/?iocs=${encodeURIComponent(iocs)}&run=true`;
+        browser.tabs.create({ url: orchestratorUrl }).then((newTab) => {
+          if (tab.cookieStoreId && tab.cookieStoreId !== 'firefox-default') {
+            browser.tabs.update(newTab.id, { cookieStoreId: tab.cookieStoreId }).then(() => {
+              console.log("Successfully moved new tab to the same container");
+            }).catch((error) => {
+              console.log("Could not move tab to container:", error.message);
+            });
+          }
+        }).catch((error) => {
+          showNotification("Error creating new tab: " + error.message);
+        });
+      } else {
+        showNotification("No text selected for ThreatIntelSearch orchestrator");
       }
     }).catch((error) => {
       showNotification("Error getting selected text: " + error.message);

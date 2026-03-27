@@ -3,6 +3,11 @@
   "version": "1.0",
   "description": "Decode selected text as URL-encoded, Base64-encoded, Hex, or Unicode.",
   "permissions": ["contextMenus", "activeTab", "scripting"],
+  "thruntellisearch": {
+    "scheme": "http",
+    "host": "127.0.0.1",
+    "port": 5000
+  },
   "background": {
     "scripts": ["background.js"]
   },
